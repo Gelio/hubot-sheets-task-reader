@@ -16,5 +16,8 @@
   "bugs": {
     "url": "https://github.com/Gelio/hubot-sheets-task-reader/issues"
   },
-  "homepage": "https://github.com/Gelio/hubot-sheets-task-reader#readme"
+  "homepage": "https://github.com/Gelio/hubot-sheets-task-reader#readme",
+  "dependencies": {
+    "google-spreadsheet": "^2.0.8"
+  }
 }
