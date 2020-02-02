@@ -13,8 +13,8 @@ steps:
     displayName: 'npm install and build'
 
   - script: |
-      npm run test
-    displayName: 'npm test'
+      npm run test:ci
+    displayName: 'npm run test:ci'
 
   # Publish artifacts
   - task: CopyFiles@2

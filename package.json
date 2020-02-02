@@ -6,7 +6,8 @@
   "scripts": {
     "build": "rollup -c rollup.config.js",
     "start": "npm run build",
-    "test": "jest"
+    "test": "jest",
+    "test:ci": "jest --verbose --ci --coverage"
   },
   "repository": {
     "type": "git",
