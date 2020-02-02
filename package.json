@@ -4,7 +4,8 @@
   "description": "A Hubot script that responds with the list of people\r assigned to a given task.",
   "main": "dist/index.js",
   "scripts": {
-    "start": "rollup -c rollup.config.js",
+    "build": "rollup -c rollup.config.js",
+    "start": "npm run build",
     "test": "jest"
   },
   "repository": {

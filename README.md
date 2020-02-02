@@ -71,7 +71,7 @@ To build the script, run the following commands:
 
 ```sh
 npm install
-npm start
+npm run build
 ```
 
 Then, the script should be available in `dist/index.js`.
