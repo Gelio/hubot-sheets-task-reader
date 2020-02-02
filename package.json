@@ -2,7 +2,7 @@
   "name": "hubot-sheets-task-reader",
   "version": "1.0.0",
   "description": "A Hubot script that responds with the list of people\r assigned to a given task.",
-  "main": "index.js",
+  "main": "dist/index.js",
   "scripts": {
     "start": "rollup -c rollup.config.js",
     "test": "jest"
