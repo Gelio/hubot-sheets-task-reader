@@ -40,8 +40,9 @@ The spreadsheet can contain multiple worksheets. Each can be referenced individu
 
 Assuming the worksheet name is _Hollywood meeting_:
 
-> The list of tasks for Hollywood meeting: Host - @will.bettleheim (Joe Goldberg), @forty.quinn
-> (Forty Quinn) Minutes owner - @candace (Candace)
+> The list of tasks for Hollywood meeting:
+> Host - @will.bettleheim (Joe Goldberg), @forty.quinn (Forty Quinn)
+> Minutes owner - @candace (Candace)
 
 ## Usage
 
