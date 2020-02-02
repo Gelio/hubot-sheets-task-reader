@@ -16,13 +16,13 @@ steps:
       npm run test
     displayName: 'npm test'
 
-# Publish artifacts
-- task: CopyFiles@2
-  inputs:
-    contents: 'dist/**'
-    targetFolder: $(Build.ArtifactStagingDirectory)
+  # Publish artifacts
+  - task: CopyFiles@2
+    inputs:
+      contents: 'dist/**'
+      targetFolder: $(Build.ArtifactStagingDirectory)
 
-- task: PublishBuildArtifacts@1
-  inputs:
-    pathToPublish: $(Build.ArtifactStagingDirectory)
-    artifactName: BuiltScript
+  - task: PublishBuildArtifacts@1
+    inputs:
+      pathToPublish: $(Build.ArtifactStagingDirectory)
+      artifactName: BuiltScript
