@@ -26,6 +26,8 @@ module.exports = (robot: Robot<any>) => {
     );
   });
 
+  // TODO: add showing task assignments for all possible worksheets from the spreadsheet
+
   robot.respond(/who is responsible for ([^?]*)\??/i, async (res) => {
     const worksheetSearchPhrase: string | undefined = res.match[1];
 
