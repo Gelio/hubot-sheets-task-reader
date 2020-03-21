@@ -1,22 +1,23 @@
 import { GoogleSpreadsheet } from 'google-spreadsheet';
 import { ScriptError } from '../script-error';
+import { findMatchingWorksheet } from './find-matching-worksheet';
 
 export function getWorksheet(
   spreadsheet: GoogleSpreadsheet,
   worksheetName: string,
 ) {
-  const worksheets = spreadsheet.sheetsByIndex;
-
-  // TODO: try case insensitive or partial search
-  const matchingWorksheet = worksheets.find(
-    (worksheet) => worksheet.title === worksheetName,
+  const worksheetSearchResult = findMatchingWorksheet(
+    spreadsheet.sheetsByIndex,
+    worksheetName,
   );
 
-  if (!matchingWorksheet) {
+  if (typeof worksheetSearchResult === 'string') {
     return Promise.reject({
-      error: new Error(`Cannot find worksheet with name ${worksheetName}`),
+      error: new Error(worksheetSearchResult),
     } as ScriptError);
   }
 
-  return matchingWorksheet.loadHeaderRow().then(() => matchingWorksheet);
+  return worksheetSearchResult
+    .loadHeaderRow()
+    .then(() => worksheetSearchResult);
 }
