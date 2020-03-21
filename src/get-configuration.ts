@@ -1,5 +1,7 @@
+import { GoogleServiceAccountCredentials } from 'google-spreadsheet';
+
 export interface ScriptConfiguration {
-  googleSheetsCredentials: object;
+  googleSheetsCredentials: GoogleServiceAccountCredentials;
   spreadsheetKey: string;
 }
 
@@ -43,7 +45,7 @@ export function getConfiguration(
 function getGoogleSheetsCredentials(
   googleSheetsCredentialsPath: string,
   require: NodeRequire,
-): object {
+): GoogleServiceAccountCredentials {
   try {
     return require(googleSheetsCredentialsPath);
   } catch (error) {

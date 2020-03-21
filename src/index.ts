@@ -26,7 +26,7 @@ module.exports = (robot: Robot<any>) => {
     );
   });
 
-  robot.respond(/who is responsible for (.*)\?/i, async (res) => {
+  robot.respond(/who is responsible for ([^?]*)\??/i, async (res) => {
     const worksheetName: string | undefined = res.match[1];
 
     if (!worksheetName) {
@@ -36,13 +36,10 @@ module.exports = (robot: Robot<any>) => {
       return;
     }
 
+    // TODO: only post this message if it's taking a long time
     res.reply("Wait a second, I'll check...");
 
-    getTasksFromWorksheet(
-      scriptConfiguration.spreadsheetKey,
-      scriptConfiguration.googleSheetsCredentials,
-      worksheetName,
-    ).then(
+    getTasksFromWorksheet(scriptConfiguration, worksheetName).then(
       (tasks) => {
         res.reply(
           [`Got it! For ${worksheetName}:`, ...tasks.map(formatTask)].join(

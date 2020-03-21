@@ -1,16 +1,16 @@
-import GoogleSpreadsheet from 'google-spreadsheet';
-import { promisify } from 'util';
-import { ScriptError } from '../script-error';
+import { GoogleSpreadsheet } from 'google-spreadsheet';
 
-export function getSpreadsheet(
-  spreadsheetKey: string,
-  googleSheetsCredentials: object,
-) {
+import { ScriptError } from '../script-error';
+import { ScriptConfiguration } from '../get-configuration';
+
+export function getSpreadsheet(scriptConfiguration: ScriptConfiguration) {
+  const { googleSheetsCredentials, spreadsheetKey } = scriptConfiguration;
+
   const doc = new GoogleSpreadsheet(spreadsheetKey);
 
-  const useServiceAccountAuth = promisify(doc.useServiceAccountAuth);
-
-  return useServiceAccountAuth(googleSheetsCredentials)
+  return doc
+    .useServiceAccountAuth(googleSheetsCredentials)
+    .then(() => doc.loadInfo())
     .then(() => doc)
     .catch((error?: Error) =>
       Promise.reject({

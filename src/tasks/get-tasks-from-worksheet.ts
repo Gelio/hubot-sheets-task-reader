@@ -1,30 +1,30 @@
 import { getSpreadsheet } from '../spreadsheet/get-spreadsheet';
 import { getWorksheet } from '../spreadsheet/get-worksheet';
-import { getWorksheetValues } from '../spreadsheet/get-worksheet-values';
-import { verifyWorksheetValues } from '../verify-worksheet-values';
-import { getUsers } from '../users/get-users';
-import { getTasks } from './get-tasks';
+import { verifyWorksheetHeaders } from './verify-worksheet-headers';
+import { ScriptConfiguration } from '../get-configuration';
+import { getTasksFromHeaders } from './get-tasks-from-headers';
+import { assignUsersToTasks } from './assign-users-to-tasks';
 
 export async function getTasksFromWorksheet(
-  spreadsheetKey: string,
-  googleSheetsCredentials: object,
+  scriptConfiguration: ScriptConfiguration,
   worksheetName: string,
 ) {
-  const spreadsheet = await getSpreadsheet(
-    spreadsheetKey,
-    googleSheetsCredentials,
-  );
+  const spreadsheet = await getSpreadsheet(scriptConfiguration);
 
   const worksheet = await getWorksheet(spreadsheet, worksheetName);
-  const worksheetValues = await getWorksheetValues(worksheet);
+  const headerValues = worksheet.headerValues;
 
-  const worksheetValidationError = verifyWorksheetValues(worksheetValues);
+  const worksheetValidationError = verifyWorksheetHeaders(headerValues);
 
   if (worksheetValidationError) {
     return Promise.reject(worksheetValidationError);
   }
 
-  const users = getUsers(worksheetValues);
+  const tasks = getTasksFromHeaders(headerValues);
 
-  return getTasks(worksheetValues, users);
+  const worksheetRows = await worksheet.getRows();
+
+  assignUsersToTasks(headerValues, worksheetRows, tasks);
+
+  return tasks;
 }

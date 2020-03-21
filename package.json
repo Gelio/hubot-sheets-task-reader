@@ -14,14 +14,14 @@
     "url": "git+https://github.com/Gelio/hubot-sheets-task-reader.git"
   },
   "keywords": [],
-  "author": "",
+  "author": "Grzegorz Rozdzialik <voreny.gelio@gmail.com>",
   "license": "ISC",
   "bugs": {
     "url": "https://github.com/Gelio/hubot-sheets-task-reader/issues"
   },
   "homepage": "https://github.com/Gelio/hubot-sheets-task-reader#readme",
   "dependencies": {
-    "google-spreadsheet": "^2.0.9"
+    "google-spreadsheet": "^3.0.10"
   },
   "devDependencies": {
     "@rollup/plugin-typescript": "^4.0.0",
