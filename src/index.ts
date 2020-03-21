@@ -22,6 +22,7 @@ module.exports = (robot: Robot<any>) => {
         `If you want to check who is responsible for some event in ${spreadsheetUrl}, ask me:`,
         '> who is responsible for (event name)?',
         'For example: who is responsible for Sprint Planning?',
+        'The event names are worksheet titles. Keep I mind that I will try to find the right worksheet even when you only specify a part of the name :)',
       ].join('\n'),
     );
   });
