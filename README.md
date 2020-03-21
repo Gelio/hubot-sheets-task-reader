@@ -85,7 +85,7 @@ Copy the `dist/index.js` script to `<your hubot instance>/scripts/sheets-reader.
 Add the following line to the `dependencies` object in your Hubot's `package.json`:
 
 ```json
-  "google-spreadsheet": "^2.0.8"
+  "google-spreadsheet": "^3.0.10"
 ```
 
 ### Configuring environment variables
@@ -96,7 +96,7 @@ The following environment variables should be set before Hubot is started:
 
    The path to the Google Sheets credentials file.
 
-   To generate the credentials file, follow [the instructions in the `google-spreadsheet` package](https://www.npmjs.com/package/google-spreadsheet#service-account-recommended-method).
+   To generate the credentials file, follow [the instructions in the `google-spreadsheet` package](https://theoephraim.github.io/node-google-spreadsheet/#/getting-started/authentication?id=service-account).
 
    Don't forget to share the spreadsheet with the service account (by sharing it with the generated
    account's e-mail).
@@ -107,7 +107,7 @@ The following environment variables should be set before Hubot is started:
 
    It can be extracted from the spreadsheet's URL:
 
-   https://docs.google.com/spreadsheets/d/%3Chere%20is%20the%20spreadsheet%20key%3E/edit#gid=0
+   [https://docs.google.com/spreadsheets/d/here is the spreadsheet key/edit#gid=0]()
 
 ## Contributing
 
