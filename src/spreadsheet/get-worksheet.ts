@@ -4,11 +4,11 @@ import { findMatchingWorksheet } from './find-matching-worksheet';
 
 export function getWorksheet(
   spreadsheet: GoogleSpreadsheet,
-  worksheetName: string,
+  searchPhrase: string,
 ) {
   const worksheetSearchResult = findMatchingWorksheet(
     spreadsheet.sheetsByIndex,
-    worksheetName,
+    searchPhrase,
   );
 
   if (typeof worksheetSearchResult === 'string') {

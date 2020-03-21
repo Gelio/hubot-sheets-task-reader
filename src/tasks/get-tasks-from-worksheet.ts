@@ -7,11 +7,11 @@ import { assignUsersToTasks } from './assign-users-to-tasks';
 
 export async function getTasksFromWorksheet(
   scriptConfiguration: ScriptConfiguration,
-  worksheetName: string,
+  worksheetSearchPhrase: string,
 ) {
   const spreadsheet = await getSpreadsheet(scriptConfiguration);
 
-  const worksheet = await getWorksheet(spreadsheet, worksheetName);
+  const worksheet = await getWorksheet(spreadsheet, worksheetSearchPhrase);
   const headerValues = worksheet.headerValues;
 
   const worksheetValidationError = verifyWorksheetHeaders(headerValues);
@@ -26,5 +26,5 @@ export async function getTasksFromWorksheet(
 
   assignUsersToTasks(headerValues, worksheetRows, tasks);
 
-  return tasks;
+  return { tasks, worksheetName: worksheet.title };
 }

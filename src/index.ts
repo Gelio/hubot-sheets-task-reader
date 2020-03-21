@@ -27,9 +27,9 @@ module.exports = (robot: Robot<any>) => {
   });
 
   robot.respond(/who is responsible for ([^?]*)\??/i, async (res) => {
-    const worksheetName: string | undefined = res.match[1];
+    const worksheetSearchPhrase: string | undefined = res.match[1];
 
-    if (!worksheetName) {
+    if (!worksheetSearchPhrase) {
       res.reply(
         'Errr... Did you forget to fill in the name of the worksheet? Try "who is responsible for ABC?"',
       );
@@ -39,8 +39,8 @@ module.exports = (robot: Robot<any>) => {
     // TODO: only post this message if it's taking a long time
     res.reply("Wait a second, I'll check...");
 
-    getTasksFromWorksheet(scriptConfiguration, worksheetName).then(
-      (tasks) => {
+    getTasksFromWorksheet(scriptConfiguration, worksheetSearchPhrase).then(
+      ({ tasks, worksheetName }) => {
         res.reply(
           [`Got it! For ${worksheetName}:`, ...tasks.map(formatTask)].join(
             '\n',
