@@ -1,4 +1,4 @@
-import { Robot } from 'hubot';
+import { Robot, Response, TextMessage } from 'hubot';
 
 import { formatTask } from './tasks/format-task';
 import { getTasksFromWorksheet } from './tasks/get-tasks-from-worksheet';
@@ -36,10 +36,10 @@ module.exports = (robot: Robot<any>) => {
       return;
     }
 
-    // TODO: only post this message if it's taking a long time
-    res.reply("Wait a second, I'll check...");
-
-    getTasksFromWorksheet(scriptConfiguration, worksheetSearchPhrase).then(
+    const responsePromise = getTasksFromWorksheet(
+      scriptConfiguration,
+      worksheetSearchPhrase,
+    ).then(
       ({ tasks, worksheetName }) => {
         res.reply(
           [`Got it! For ${worksheetName}:`, ...tasks.map(formatTask)].join(
@@ -67,5 +67,30 @@ module.exports = (robot: Robot<any>) => {
         }
       },
     );
+
+    postIntermediateResponseWhenInProgressForSomeTime(
+      res,
+      responsePromise,
+      2000,
+    );
   });
 };
+
+/**
+ * If the response from spreadsheet has not been sent within some time, send an intermediate
+ * response.
+ * Otherwise, do not send anything to avoid sending too many messages.
+ */
+function postIntermediateResponseWhenInProgressForSomeTime(
+  response: Response<any, TextMessage>,
+  promise: Promise<any>,
+  intermediateResponseDelay: number,
+) {
+  const intermediateResponseTimeoutId = setTimeout(() => {
+    response.reply("Hold on, I'm checking...");
+  }, intermediateResponseDelay);
+
+  promise.then(() => {
+    clearTimeout(intermediateResponseTimeoutId);
+  });
+}
