@@ -4,7 +4,7 @@ export interface ScriptError {
 }
 
 export function isScriptError(value: unknown): value is ScriptError {
-  return (value as ScriptError).error instanceof Error;
+  return value && (value as ScriptError).error instanceof Error;
 }
 
 export function handleScriptError(scriptError: ScriptError) {
