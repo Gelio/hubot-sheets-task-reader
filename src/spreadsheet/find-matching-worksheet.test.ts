@@ -1,5 +1,6 @@
 import { SpreadsheetWorksheet } from 'google-spreadsheet';
 import { findMatchingWorksheet } from './find-matching-worksheet';
+import { isScriptError, ScriptError } from '../script-error';
 
 describe('findMatchingWorksheet', () => {
   let worksheets: SpreadsheetWorksheet[];
@@ -48,12 +49,18 @@ describe('findMatchingWorksheet', () => {
   it('should return an error message when no spreadsheet is found', () => {
     const result = findMatchingWorksheet(worksheets, 'Event C');
 
-    expect(result).toMatch('Cannot find worksheet that contains "Event C"');
+    expect(isScriptError(result)).toBe(true);
+    expect((result as ScriptError).error.message).toMatch(
+      'Cannot find worksheet that contains "Event C"',
+    );
   });
 
   it('should return an error message when more than 1 worksheet matches', () => {
     const result = findMatchingWorksheet(worksheets, 'event');
 
-    expect(result).toMatch('Found more than 1 worksheet that contains "event"');
+    expect(isScriptError(result)).toBe(true);
+    expect((result as ScriptError).error.message).toMatch(
+      'Found more than 1 worksheet that contains "event"',
+    );
   });
 });

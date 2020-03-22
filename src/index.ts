@@ -1,9 +1,12 @@
-import { Robot, Response, TextMessage } from 'hubot';
+import { Robot } from 'hubot';
 
-import { formatTask } from './tasks/format-task';
-import { getTasksFromWorksheet } from './tasks/get-tasks-from-worksheet';
 import { ScriptConfiguration, getConfiguration } from './get-configuration';
-import { ScriptError } from './script-error';
+import { handleScriptError } from './script-error';
+import { runScriptExecutorWithIntermediateResponse } from './script-execution/run-script-executor-with-intermediate-response';
+import {
+  showAllTaskAssignmentsExecutor,
+  showTaskAssignmentsInWorksheetExecutorFactory,
+} from './script-execution/executors';
 
 let scriptConfiguration: ScriptConfiguration;
 try {
@@ -22,12 +25,15 @@ module.exports = (robot: Robot<any>) => {
         `If you want to check who is responsible for some event in ${spreadsheetUrl}, ask me:`,
         '> who is responsible for (event name)?',
         'For example: who is responsible for Sprint Planning?',
+        "If you don't like typing, the shorter version is:",
+        '> show (event name)',
         'The event names are worksheet titles. Keep I mind that I will try to find the right worksheet even when you only specify a part of the name :)',
+        '',
+        'You can also ask me for task assignments for all events/worksheets:',
+        '> show all',
       ].join('\n'),
     );
   });
-
-  // TODO: add showing task assignments for all possible worksheets from the spreadsheet
 
   robot.respond(/who is responsible for ([^?]*)\??/i, async (res) => {
     const worksheetSearchPhrase: string | undefined = res.match[1];
@@ -39,61 +45,48 @@ module.exports = (robot: Robot<any>) => {
       return;
     }
 
-    const responsePromise = getTasksFromWorksheet(
+    runScriptExecutorWithIntermediateResponse(
       scriptConfiguration,
-      worksheetSearchPhrase,
-    ).then(
-      ({ tasks, worksheetName }) => {
-        res.reply(
-          [`Got it! For ${worksheetName}:`, ...tasks.map(formatTask)].join(
-            '\n',
-          ),
-        );
-      },
-      (scriptError: ScriptError) => {
-        console.log(scriptError.error);
-
-        if (scriptError.consoleLogOnly) {
-          res.reply(
-            [
-              'Unfortunately, I encountered an internal error :/',
-              'See the logs in the Hubot console for more information',
-            ].join('\n'),
-          );
-        } else {
-          res.reply(
-            [
-              'Unfortunately, I encountered an error :/',
-              scriptError.error.message,
-            ].join('\n'),
-          );
-        }
-      },
-    );
-
-    postIntermediateResponseWhenInProgressForSomeTime(
       res,
-      responsePromise,
-      2000,
+      showTaskAssignmentsInWorksheetExecutorFactory(worksheetSearchPhrase),
+      handleScriptError,
+    );
+  });
+
+  robot.respond(/show (.*)/i, async (res) => {
+    const rawSearchPhrase: string | undefined = res.match[1];
+
+    const scriptExecutor = (function getScriptExecutor() {
+      if (!rawSearchPhrase) {
+        return;
+      }
+
+      const searchPhrase = rawSearchPhrase.trim().toLowerCase();
+
+      if (searchPhrase === 'all') {
+        return showAllTaskAssignmentsExecutor;
+      }
+
+      return showTaskAssignmentsInWorksheetExecutorFactory(rawSearchPhrase);
+    })();
+
+    if (!scriptExecutor) {
+      res.reply(
+        [
+          "I don't know what you are looking for :/ Try:",
+          '> show (event name)',
+          'or',
+          '> show all',
+        ].join('\n'),
+      );
+      return;
+    }
+
+    runScriptExecutorWithIntermediateResponse(
+      scriptConfiguration,
+      res,
+      scriptExecutor,
+      handleScriptError,
     );
   });
 };
-
-/**
- * If the response from spreadsheet has not been sent within some time, send an intermediate
- * response.
- * Otherwise, do not send anything to avoid sending too many messages.
- */
-function postIntermediateResponseWhenInProgressForSomeTime(
-  response: Response<any, TextMessage>,
-  promise: Promise<any>,
-  intermediateResponseDelay: number,
-) {
-  const intermediateResponseTimeoutId = setTimeout(() => {
-    response.reply("Hold on, I'm checking...");
-  }, intermediateResponseDelay);
-
-  promise.then(() => {
-    clearTimeout(intermediateResponseTimeoutId);
-  });
-}

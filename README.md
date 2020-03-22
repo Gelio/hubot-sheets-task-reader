@@ -40,11 +40,24 @@ The spreadsheet can contain multiple worksheets. Each can be referenced individu
 
 Assuming the worksheet name is _Hollywood meeting_:
 
-> The list of tasks for Hollywood meeting:
+> Got it! For Hollywood meeting:
 > Host - @will.bettleheim (Joe Goldberg), @forty.quinn (Forty Quinn)
 > Minutes owner - @candace (Candace)
 
 ## Usage
+
+You can ask the bot for task assignments from a specific worksheet, or from all worksheets that the
+bot can recognize.
+
+### Getting the list of all task assignments
+
+Ask the bot the following:
+
+> @botname show all
+
+The bot will try to parse all worksheets and reply with task assignments.
+
+### Getting the list of task assignments from a specific worksheet
 
 The bot can be invoked with the following command:
 
@@ -55,6 +68,10 @@ for example:
 > @botname who is responsible for Hollywood meeting?
 
 And the bot will read out the assignments in the _Hollywood meeting_ worksheet.
+
+There is also a shorthand command that has the same effect:
+
+> @botname show (worksheet name)
 
 ## Installation
 
