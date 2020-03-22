@@ -1,9 +1,10 @@
 import { Robot, Response, TextMessage } from 'hubot';
+import { GoogleSpreadsheet } from 'google-spreadsheet';
 
 import { formatTask } from './tasks/format-task';
 import { getTasksFromWorksheet } from './tasks/get-tasks-from-worksheet';
 import { ScriptConfiguration, getConfiguration } from './get-configuration';
-import { handleScriptError } from './script-error';
+import { handleScriptError, ScriptError } from './script-error';
 import { getAllWorksheetsWithTaskAssignments } from './tasks/get-tasks-from-all-worksheets';
 import { getSpreadsheet } from './spreadsheet/get-spreadsheet';
 
@@ -42,7 +43,7 @@ module.exports = (robot: Robot<any>) => {
       return;
     }
 
-    const responsePromise = getTasksFromWorksheet(
+    const executionPromise = getTasksFromWorksheet(
       scriptConfiguration,
       worksheetSearchPhrase,
     )
@@ -55,35 +56,34 @@ module.exports = (robot: Robot<any>) => {
       )
       .then((responseMessage) => res.reply(responseMessage));
 
-    postIntermediateResponseWhenInProgressForSomeTime(
+    postIntermediateResponseWhenExecutionInProgressForSomeTime(
       res,
-      responsePromise,
+      executionPromise,
       2000,
     );
   });
 
   robot.respond(/show all/i, async (res) => {
-    const spreadsheet = await getSpreadsheet(scriptConfiguration);
+    const showAllTaskAssignmentsExecutor: ScriptExecutor = (spreadsheet) =>
+      getAllWorksheetsWithTaskAssignments(
+        spreadsheet,
+      ).then((worksheetsWithTasks) =>
+        [
+          "I've got assignments for all tasks :)",
+          ...worksheetsWithTasks.map(({ tasks, worksheetName }) =>
+            [`For ${worksheetName}:`, ...tasks.map(formatTask)].join('\n'),
+          ),
+        ].join('\n\n'),
+      );
 
-    const responsePromise = getAllWorksheetsWithTaskAssignments(spreadsheet)
-      .then(
-        (worksheetsWithTasks) =>
-          worksheetsWithTasks
-            .map(({ tasks, worksheetName }) =>
-              [
-                "I've got assignments for all tasks :)",
-                `For ${worksheetName}:`,
-                ...tasks.map(formatTask),
-              ].join('\n'),
-            )
-            .join('\n\n'),
-        handleScriptError,
-      )
-      .then((responseMessage) => res.reply(responseMessage));
-
-    postIntermediateResponseWhenInProgressForSomeTime(
+    const executionPromise = runScriptExecutorWithSpreadsheet(
+      scriptConfiguration,
       res,
-      responsePromise,
+    )(showAllTaskAssignmentsExecutor, handleScriptError);
+
+    postIntermediateResponseWhenExecutionInProgressForSomeTime(
+      res,
+      executionPromise,
       2000,
     );
   });
@@ -94,16 +94,31 @@ module.exports = (robot: Robot<any>) => {
  * response.
  * Otherwise, do not send anything to avoid sending too many messages.
  */
-function postIntermediateResponseWhenInProgressForSomeTime(
+function postIntermediateResponseWhenExecutionInProgressForSomeTime(
   response: Response<any, TextMessage>,
-  promise: Promise<any>,
+  executionPromise: Promise<any>,
   intermediateResponseDelay: number,
 ) {
   const intermediateResponseTimeoutId = setTimeout(() => {
     response.reply("Hold on, I'm checking...");
   }, intermediateResponseDelay);
 
-  promise.then(() => {
+  executionPromise.then(() => {
     clearTimeout(intermediateResponseTimeoutId);
   });
 }
+
+type ScriptExecutor = (spreadsheet: GoogleSpreadsheet) => Promise<string>;
+type ScriptErrorHandler = (scriptError: ScriptError) => string;
+
+const runScriptExecutorWithSpreadsheet = (
+  scriptConfiguration: ScriptConfiguration,
+  response: Response<any, TextMessage>,
+) => async (
+  scriptExecutor: ScriptExecutor,
+  scriptErrorHandler: ScriptErrorHandler,
+) =>
+  getSpreadsheet(scriptConfiguration)
+    .then(scriptExecutor)
+    .catch(scriptErrorHandler)
+    .then((responseMessage) => response.reply(responseMessage));
