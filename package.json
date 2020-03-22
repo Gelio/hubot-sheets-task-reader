@@ -1,6 +1,6 @@
 {
   "name": "hubot-sheets-task-reader",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "description": "A Hubot script that responds with the list of people\r assigned to a given task.",
   "main": "dist/index.js",
   "scripts": {
