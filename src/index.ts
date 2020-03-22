@@ -42,11 +42,15 @@ module.exports = (robot: Robot<any>) => {
     const responsePromise = getTasksFromWorksheet(
       scriptConfiguration,
       worksheetSearchPhrase,
-    ).then(({ tasks, worksheetName }) => {
-      res.reply(
-        [`Got it! For ${worksheetName}:`, ...tasks.map(formatTask)].join('\n'),
-      );
-    }, handleScriptError(res));
+    )
+      .then(
+        ({ tasks, worksheetName }) =>
+          [`Got it! For ${worksheetName}:`, ...tasks.map(formatTask)].join(
+            '\n',
+          ),
+        handleScriptError,
+      )
+      .then((responseMessage) => res.reply(responseMessage));
 
     postIntermediateResponseWhenInProgressForSomeTime(
       res,
@@ -75,24 +79,18 @@ function postIntermediateResponseWhenInProgressForSomeTime(
   });
 }
 
-const handleScriptError = (res: Response<any, TextMessage>) => (
-  scriptError: ScriptError,
-) => {
+function handleScriptError(scriptError: ScriptError) {
   console.log(scriptError.error);
 
   if (scriptError.consoleLogOnly) {
-    res.reply(
-      [
-        'Unfortunately, I encountered an internal error :/',
-        'See the logs in the Hubot console for more information',
-      ].join('\n'),
-    );
+    return [
+      'Unfortunately, I encountered an internal error :/',
+      'See the logs in the Hubot console for more information',
+    ].join('\n');
   } else {
-    res.reply(
-      [
-        'Unfortunately, I encountered an error :/',
-        scriptError.error.message,
-      ].join('\n'),
-    );
+    return [
+      'Unfortunately, I encountered an error :/',
+      scriptError.error.message,
+    ].join('\n');
   }
-};
+}
