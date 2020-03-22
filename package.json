@@ -5,6 +5,7 @@
   "main": "dist/index.js",
   "scripts": {
     "build": "rollup -c rollup.config.js",
+    "build:watch": "npm run build -- --watch",
     "start": "npm run build",
     "test": "jest",
     "test:watch": "jest --watch",
