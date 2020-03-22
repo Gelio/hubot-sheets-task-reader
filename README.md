@@ -67,7 +67,9 @@ This sections lists the steps required to install the script.
 
 ### Building the script
 
-To build the script, run the following commands:
+You can use the prebuilt script, downloadable as the asset in [a given release on GitHub](https://github.com/Gelio/hubot-sheets-task-reader/releases) (`sheets-task-reader.js`).
+
+Alternatively, you may build the script yourself. To build the script, run the following commands:
 
 ```sh
 npm install
@@ -78,7 +80,8 @@ Then, the script should be available in `dist/index.js`.
 
 ### Copying the script to Hubot
 
-Copy the `dist/index.js` script to `<your hubot instance>/scripts/sheets-reader.js`.
+Copy the script (`sheets-task-reader.js` from a prebuilt release or `dist/index.js` if built
+yourself) to `<your hubot instance>/scripts/sheets-reader.js`.
 
 ### Adding script's dependencies to Hubot
 
