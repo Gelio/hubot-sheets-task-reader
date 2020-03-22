@@ -3,7 +3,7 @@ import { Robot, Response, TextMessage } from 'hubot';
 import { formatTask } from './tasks/format-task';
 import { getTasksFromWorksheet } from './tasks/get-tasks-from-worksheet';
 import { ScriptConfiguration, getConfiguration } from './get-configuration';
-import { ScriptError } from './script-error';
+import { handleScriptError } from './script-error';
 
 let scriptConfiguration: ScriptConfiguration;
 try {
@@ -77,20 +77,4 @@ function postIntermediateResponseWhenInProgressForSomeTime(
   promise.then(() => {
     clearTimeout(intermediateResponseTimeoutId);
   });
-}
-
-function handleScriptError(scriptError: ScriptError) {
-  console.log(scriptError.error);
-
-  if (scriptError.consoleLogOnly) {
-    return [
-      'Unfortunately, I encountered an internal error :/',
-      'See the logs in the Hubot console for more information',
-    ].join('\n');
-  } else {
-    return [
-      'Unfortunately, I encountered an error :/',
-      scriptError.error.message,
-    ].join('\n');
-  }
 }
