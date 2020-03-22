@@ -4,6 +4,8 @@ import { formatTask } from './tasks/format-task';
 import { getTasksFromWorksheet } from './tasks/get-tasks-from-worksheet';
 import { ScriptConfiguration, getConfiguration } from './get-configuration';
 import { handleScriptError } from './script-error';
+import { getAllWorksheetsWithTaskAssignments } from './tasks/get-tasks-from-all-worksheets';
+import { getSpreadsheet } from './spreadsheet/get-spreadsheet';
 
 let scriptConfiguration: ScriptConfiguration;
 try {
@@ -23,11 +25,12 @@ module.exports = (robot: Robot<any>) => {
         '> who is responsible for (event name)?',
         'For example: who is responsible for Sprint Planning?',
         'The event names are worksheet titles. Keep I mind that I will try to find the right worksheet even when you only specify a part of the name :)',
+        '',
+        'You can also ask me for task assignments for all events/worksheets:',
+        '> show all',
       ].join('\n'),
     );
   });
-
-  // TODO: add showing task assignments for all possible worksheets from the spreadsheet
 
   robot.respond(/who is responsible for ([^?]*)\??/i, async (res) => {
     const worksheetSearchPhrase: string | undefined = res.match[1];
@@ -48,6 +51,32 @@ module.exports = (robot: Robot<any>) => {
           [`Got it! For ${worksheetName}:`, ...tasks.map(formatTask)].join(
             '\n',
           ),
+        handleScriptError,
+      )
+      .then((responseMessage) => res.reply(responseMessage));
+
+    postIntermediateResponseWhenInProgressForSomeTime(
+      res,
+      responsePromise,
+      2000,
+    );
+  });
+
+  robot.respond(/show all/i, async (res) => {
+    const spreadsheet = await getSpreadsheet(scriptConfiguration);
+
+    const responsePromise = getAllWorksheetsWithTaskAssignments(spreadsheet)
+      .then(
+        (worksheetsWithTasks) =>
+          worksheetsWithTasks
+            .map(({ tasks, worksheetName }) =>
+              [
+                "I've got assignments for all tasks :)",
+                `For ${worksheetName}:`,
+                ...tasks.map(formatTask),
+              ].join('\n'),
+            )
+            .join('\n\n'),
         handleScriptError,
       )
       .then((responseMessage) => res.reply(responseMessage));
