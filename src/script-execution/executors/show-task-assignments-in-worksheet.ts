@@ -1,9 +1,9 @@
 import { ScriptExecutor } from '../types';
 import { getTasksFromWorksheet } from '../../tasks/get-tasks-from-worksheet';
-import { formatTask } from '../../tasks/format-task';
 import { verifyWorksheetHeaders } from '../../tasks/verify-worksheet-headers';
 import { findMatchingWorksheet } from '../../spreadsheet/find-matching-worksheet';
 import { isScriptError } from '../../script-error';
+import { formatTasksFromWorksheet } from './common/format-tasks-from-worksheet';
 
 export const showTaskAssignmentsInWorksheetExecutorFactory = (
   worksheetSearchPhrase: string,
@@ -27,7 +27,7 @@ export const showTaskAssignmentsInWorksheetExecutorFactory = (
     return Promise.reject(worksheetValidationError);
   }
 
-  const { tasks, worksheetName } = await getTasksFromWorksheet(worksheetResult);
+  const tasksFromWorksheet = await getTasksFromWorksheet(worksheetResult);
 
-  return [`Got it! For ${worksheetName}:`, ...tasks.map(formatTask)].join('\n');
+  return `Got it! ${formatTasksFromWorksheet(tasksFromWorksheet)}`;
 };
