@@ -1,12 +1,13 @@
-import { Robot, Response, TextMessage } from 'hubot';
-import { GoogleSpreadsheet } from 'google-spreadsheet';
+import { Robot } from 'hubot';
 
 import { formatTask } from './tasks/format-task';
 import { getTasksFromWorksheet } from './tasks/get-tasks-from-worksheet';
 import { ScriptConfiguration, getConfiguration } from './get-configuration';
-import { handleScriptError, ScriptError } from './script-error';
+import { handleScriptError } from './script-error';
 import { getAllWorksheetsWithTaskAssignments } from './tasks/get-tasks-from-all-worksheets';
-import { getSpreadsheet } from './spreadsheet/get-spreadsheet';
+import { ScriptExecutor } from './script-execution/types';
+import { postIntermediateResponseWhenExecutionInProgressForSomeTime } from './script-execution/post-intermediate-response';
+import { runScriptExecutorWithIntermediateResponse } from './script-execution/run-script-executor-with-intermediate-response';
 
 let scriptConfiguration: ScriptConfiguration;
 try {
@@ -59,7 +60,6 @@ module.exports = (robot: Robot<any>) => {
     postIntermediateResponseWhenExecutionInProgressForSomeTime(
       res,
       executionPromise,
-      2000,
     );
   });
 
@@ -76,49 +76,11 @@ module.exports = (robot: Robot<any>) => {
         ].join('\n\n'),
       );
 
-    const executionPromise = runScriptExecutorWithSpreadsheet(
+    runScriptExecutorWithIntermediateResponse(
       scriptConfiguration,
       res,
-    )(showAllTaskAssignmentsExecutor, handleScriptError);
-
-    postIntermediateResponseWhenExecutionInProgressForSomeTime(
-      res,
-      executionPromise,
-      2000,
+      showAllTaskAssignmentsExecutor,
+      handleScriptError,
     );
   });
 };
-
-/**
- * If the response from spreadsheet has not been sent within some time, send an intermediate
- * response.
- * Otherwise, do not send anything to avoid sending too many messages.
- */
-function postIntermediateResponseWhenExecutionInProgressForSomeTime(
-  response: Response<any, TextMessage>,
-  executionPromise: Promise<any>,
-  intermediateResponseDelay: number,
-) {
-  const intermediateResponseTimeoutId = setTimeout(() => {
-    response.reply("Hold on, I'm checking...");
-  }, intermediateResponseDelay);
-
-  executionPromise.then(() => {
-    clearTimeout(intermediateResponseTimeoutId);
-  });
-}
-
-type ScriptExecutor = (spreadsheet: GoogleSpreadsheet) => Promise<string>;
-type ScriptErrorHandler = (scriptError: ScriptError) => string;
-
-const runScriptExecutorWithSpreadsheet = (
-  scriptConfiguration: ScriptConfiguration,
-  response: Response<any, TextMessage>,
-) => async (
-  scriptExecutor: ScriptExecutor,
-  scriptErrorHandler: ScriptErrorHandler,
-) =>
-  getSpreadsheet(scriptConfiguration)
-    .then(scriptExecutor)
-    .catch(scriptErrorHandler)
-    .then((responseMessage) => response.reply(responseMessage));
