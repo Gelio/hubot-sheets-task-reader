@@ -1,9 +1,10 @@
 import { SpreadsheetWorksheet } from 'google-spreadsheet';
+import { ScriptError } from '../script-error';
 
 export function findMatchingWorksheet(
   worksheets: SpreadsheetWorksheet[],
   searchPhrase: string,
-) {
+): SpreadsheetWorksheet | ScriptError {
   const partialMatchRegexp = new RegExp(searchPhrase, 'i');
 
   const partialMatchWorksheets = worksheets.filter((worksheet) =>
@@ -11,7 +12,9 @@ export function findMatchingWorksheet(
   );
 
   if (partialMatchWorksheets.length === 0) {
-    return `Cannot find worksheet that contains "${searchPhrase}"`;
+    return {
+      error: new Error(`Cannot find worksheet that contains "${searchPhrase}"`),
+    };
   } else if (partialMatchWorksheets.length === 1) {
     return partialMatchWorksheets[0];
   } else {
@@ -26,6 +29,10 @@ export function findMatchingWorksheet(
       return partialMatchWorksheets[0];
     }
 
-    return `Found more than 1 worksheet that contains "${searchPhrase}". Please use a full title`;
+    return {
+      error: new Error(
+        `Found more than 1 worksheet that contains "${searchPhrase}". Please use a full title`,
+      ),
+    };
   }
 }
