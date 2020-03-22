@@ -9,12 +9,15 @@ steps:
 
   - script: |
       npm install
+    displayName: 'Install dependencies'
+
+  - script: |
       npm run build
-    displayName: 'npm install and build'
+    displayName: 'Build script'
 
   - script: |
       npm run test:ci
-    displayName: 'npm run test:ci'
+    displayName: 'Run tests'
 
   # Publish artifacts
   - task: CopyFiles@2
