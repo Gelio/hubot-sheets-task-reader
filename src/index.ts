@@ -1,13 +1,12 @@
 import { Robot } from 'hubot';
 
-import { formatTask } from './tasks/format-task';
-import { getTasksFromWorksheet } from './tasks/get-tasks-from-worksheet';
 import { ScriptConfiguration, getConfiguration } from './get-configuration';
 import { handleScriptError } from './script-error';
-import { getAllWorksheetsWithTaskAssignments } from './tasks/get-tasks-from-all-worksheets';
-import { ScriptExecutor } from './script-execution/types';
-import { postIntermediateResponseWhenExecutionInProgressForSomeTime } from './script-execution/post-intermediate-response';
 import { runScriptExecutorWithIntermediateResponse } from './script-execution/run-script-executor-with-intermediate-response';
+import {
+  showAllTaskAssignmentsExecutor,
+  showTaskAssignmentsInWorksheetExecutorFactory,
+} from './script-execution/executors';
 
 let scriptConfiguration: ScriptConfiguration;
 try {
@@ -26,6 +25,8 @@ module.exports = (robot: Robot<any>) => {
         `If you want to check who is responsible for some event in ${spreadsheetUrl}, ask me:`,
         '> who is responsible for (event name)?',
         'For example: who is responsible for Sprint Planning?',
+        "If you don't like typing, the shorter version is:",
+        '> show (event name)',
         'The event names are worksheet titles. Keep I mind that I will try to find the right worksheet even when you only specify a part of the name :)',
         '',
         'You can also ask me for task assignments for all events/worksheets:',
@@ -44,42 +45,47 @@ module.exports = (robot: Robot<any>) => {
       return;
     }
 
-    const executionPromise = getTasksFromWorksheet(
+    runScriptExecutorWithIntermediateResponse(
       scriptConfiguration,
-      worksheetSearchPhrase,
-    )
-      .then(
-        ({ tasks, worksheetName }) =>
-          [`Got it! For ${worksheetName}:`, ...tasks.map(formatTask)].join(
-            '\n',
-          ),
-        handleScriptError,
-      )
-      .then((responseMessage) => res.reply(responseMessage));
-
-    postIntermediateResponseWhenExecutionInProgressForSomeTime(
       res,
-      executionPromise,
+      showTaskAssignmentsInWorksheetExecutorFactory(worksheetSearchPhrase),
+      handleScriptError,
     );
   });
 
-  robot.respond(/show all/i, async (res) => {
-    const showAllTaskAssignmentsExecutor: ScriptExecutor = (spreadsheet) =>
-      getAllWorksheetsWithTaskAssignments(
-        spreadsheet,
-      ).then((worksheetsWithTasks) =>
+  robot.respond(/show (.*)/i, async (res) => {
+    const rawSearchPhrase: string | undefined = res.match[1];
+
+    const scriptExecutor = (function getScriptExecutor() {
+      if (!rawSearchPhrase) {
+        return;
+      }
+
+      const searchPhrase = rawSearchPhrase.trim().toLowerCase();
+
+      if (searchPhrase === 'all') {
+        return showAllTaskAssignmentsExecutor;
+      }
+
+      return showTaskAssignmentsInWorksheetExecutorFactory(rawSearchPhrase);
+    })();
+
+    if (!scriptExecutor) {
+      res.reply(
         [
-          "I've got assignments for all tasks :)",
-          ...worksheetsWithTasks.map(({ tasks, worksheetName }) =>
-            [`For ${worksheetName}:`, ...tasks.map(formatTask)].join('\n'),
-          ),
-        ].join('\n\n'),
+          "I don't know what you are looking for :/ Try:",
+          '> show (event name)',
+          'or',
+          '> show all',
+        ].join('\n'),
       );
+      return;
+    }
 
     runScriptExecutorWithIntermediateResponse(
       scriptConfiguration,
       res,
-      showAllTaskAssignmentsExecutor,
+      scriptExecutor,
       handleScriptError,
     );
   });
